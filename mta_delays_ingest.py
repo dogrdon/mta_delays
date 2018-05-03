@@ -38,11 +38,11 @@ t2 = PythonOperator(
     dag=dag
     )
 
-t3 = PythonOperator(
-    task_id="ingest_mta_gtfs",
-    python_callable=ingest_mta_gtfs,
-    dag=dag
-    )
+#t3 = PythonOperator(
+#    task_id="ingest_mta_gtfs",
+#    python_callable=ingest_mta_gtfs,
+#    dag=dag
+#    )
 
-t3.set_upstream(t2)
+#t3.set_upstream(t2)
 t2.set_upstream(t1)
