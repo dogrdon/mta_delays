@@ -17,7 +17,7 @@ producer = KafkaProducer(bootstrap_servers='localhost:9092',
 					     value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 def get_raw_delays_and_send_to_kafka():
-
+	new_last_record_timestamp = None
 
 	last_batch_store_client = MongoConn('mta_delays_dev', 'last_batch_end')
 	mta_delays_client = MongoConn('mta_delays_dev', 'mta_delays')
@@ -44,11 +44,12 @@ def get_raw_delays_and_send_to_kafka():
 			print("Tried sending {} from {} to topic and it failed: {}, Quiting for now, will start from where left off".format(record['_id'], record['timestamp'], e))
 			break
 
-	update_last_batch = {}
-	update_last_batch['last_timestamp_unix'] = new_last_record_timestamp
-	update_last_batch['run_complete_timestamp'] = datetime.datetime.utcnow()
-	print('saving last_batch_run: {}'.format(new_last_record_timestamp))
-	last_batch_store_client.save_record(update_last_batch)
+	if new_last_record_timestamp is not None:
+		update_last_batch = {}
+		update_last_batch['last_timestamp_unix'] = new_last_record_timestamp
+		update_last_batch['run_complete_timestamp'] = datetime.datetime.utcnow()
+		print('saving last_batch_run: {}'.format(new_last_record_timestamp))
+		last_batch_store_client.save_record(update_last_batch)
 
 
 
