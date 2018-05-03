@@ -1,8 +1,8 @@
-#!/usr/bin/env python333
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
 
 
 
@@ -23,3 +23,12 @@ class MongoConn(object):
 	def save_records(self, records):
 		# save one or more documents
 		self.collection.insert_many(records)
+
+	def get_last_record(self, field):
+		return self.collection.find().sort( field, DESCENDING ).limit(1)
+		
+	def get_all_records(self):
+		return self.collection.find()
+
+	def get_records_gt(self, field, val):
+		return self.collection.find({field:{'$gt':val}})

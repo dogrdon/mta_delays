@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import xml.etree.ElementTree as ET
 import requests
 from connection import MongoConn
+from utils.convert_timestamp import convert_timestamp
 
 
 def etree_to_dict(t):
@@ -14,6 +15,7 @@ def etree_to_dict(t):
 def parse_xml(r):
 	subway_status = {}
 	subway_status['timestamp'] = r.find('./timestamp').text
+	subway_status['timestamp_unix'] = convert_timestamp(subway_status['timestamp'])
 	subwaylines = r.findall("./subway/line")
 
 	subway_status['lines'] = []
