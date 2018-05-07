@@ -32,3 +32,6 @@ class MongoConn(object):
 
 	def get_records_gt(self, field, val):
 		return self.collection.find({field:{'$gt':val}})
+
+	def get_one_record(self, field=None, val=None):
+		return self.collection.find_one({field:val})
