@@ -22,15 +22,24 @@ spark = SparkSession(sc)
 
     --packages org.mongodb.spark:mongo-spark-connector_2.11:2.2.2 \
     --conf "spark.mongodb.input.uri=mongodb://127.0.0.1/mta_delays_dev.nyc_weather?readPreference=primaryPreferred"
-
+    --conf "spark.mongodb.output.uri=mongodb://127.0.0.1/mta_delays_dev.mta_delays_processed"
 '''
-weather_df = spark.read.format("com.mongodb.spark.sql.DefaultSource").load()
-weather_df = weather_df.withColumnRenamed("time", "timestamp_unix")
+
 
 def raw_text_processor():
 
     pass
 
+
+def round_down_time(uts):
+    '''
+        Takes a unix timestamp and rounds it down to the nearest unit of time
+        can be configured by seconds
+    '''
+    minutes=2
+    return int(uts - (uts % int(minutes * 60)))
+
+roundDownTimeUDF = udf(round_down_time, IntegerType())
 
 
 def get_nearest_weather_obs(uts):
@@ -43,6 +52,11 @@ def get_nearest_weather_obs(uts):
     return resstr
 
 nearestWeatherUDF = udf(get_nearest_weather_obs, StringType())
+
+
+weather_df = spark.read.format("com.mongodb.spark.sql.DefaultSource").load()
+weather_df = weather_df.withColumnRenamed("time", "timestamp_unix_weather")
+weather_df = weather_df.withColumn('rounded_timestamp', roundDownTimeUDF(col('timestamp_unix_weather')))
 
 df = spark.readStream.format("kafka") \
 	.option("kafka.bootstrap.servers","localhost:9092")\
@@ -69,18 +83,36 @@ exploded_df = mta_data_deduped.select("*", explode("lines").alias("exploded_line
 
 split_df = exploded_df.select('timestamp', 'timestamp_unix', 'oid', 'exploded_lines.*')
 
-# TODO: JOIN ON A WEATHER RECORD
+full_mta_df = split_df.withColumn('rounded_timestamp', roundDownTimeUDF(col('timestamp_unix')))
 
-join_weather_df = weather_df.join(mta_data_deduped, "timestamp_unix", "right" )
+# JOIN ON A WEATHER RECORD - 
+# as above, we've rounded the time down to the next 2 minutes so that we have more records joined
 
-# TODO: DEAL WITH RAW TEXT (opt for now)
+join_weather_df = full_mta_df.join(weather_df, "rounded_timestamp", "left" ).withColumnRenamed("timestamp_unix", "timestamp_unix_mta")
+
+# TODO: DEAL WITH RAW TEXT (opt, for now just return text for DELAYS or SERVICE CHANGE status)
+
+full_data_pruned_df = join_weather_df.withColumn('delay_text', when((join_weather_df.status=="GOOD SERVICE") | (join_weather_df.status=="PLANNED WORK"), None).otherwise(trim(join_weather_df.raw_text)))\
+                                     .drop(join_weather_df.raw_text)
+
+
+#qry = full_data_pruned_df.writeStream.outputMode("append").format("console").start()
+#qry.awaitTermination()
 
 # WRITE TO A KAFKA OUT STREAM FOR PICKUP
 
-qry = join_weather_df.writeStream.outputMode("append").format("console").start()
-qry.awaitTermination()
+df_cols = list(full_data_pruned_df.columns)
 
-#weather_df.printSchema()
-#split_df.printSchema()
-#join_weather_df.printSchema()
+print(df_cols)
 
+ds = full_data_pruned_df \
+  .select(to_json(struct("*")).alias("value")) \
+  .writeStream \
+  .format("kafka") \
+  .option("kafka.bootstrap.servers", "localhost:9092") \
+  .option("topic", "mta-delays-processed") \
+  .option("checkpointLocation", "/data/sparkCheckpoints/mta-delays-processed") \
+  .outputMode("append") \
+  .start()
+
+ds.awaitTermination()
