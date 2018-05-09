@@ -95,17 +95,16 @@ join_weather_df = full_mta_df.join(weather_df, "rounded_timestamp", "left" ).wit
 full_data_pruned_df = join_weather_df.withColumn('delay_text', when((join_weather_df.status=="GOOD SERVICE") | (join_weather_df.status=="PLANNED WORK"), None).otherwise(trim(join_weather_df.raw_text)))\
                                      .drop(join_weather_df.raw_text)
 
+full_data_coded_df = full_data_pruned_df.withColumn('delay', when(full_data_pruned_df.status=="DELAYS", 1).otherwise(0)) \
+                                        .withColumn('service_change', when(full_data_pruned_df.status=="SERVICE CHANGE", 1).otherwise(0)) 
+
 
 #qry = full_data_pruned_df.writeStream.outputMode("append").format("console").start()
 #qry.awaitTermination()
 
 # WRITE TO A KAFKA OUT STREAM FOR PICKUP
 
-df_cols = list(full_data_pruned_df.columns)
-
-print(df_cols)
-
-ds = full_data_pruned_df \
+ds = full_data_coded_df \
   .select(to_json(struct("*")).alias("value")) \
   .writeStream \
   .format("kafka") \

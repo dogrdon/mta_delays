@@ -32,3 +32,8 @@ def convert_timestamp(dateIN):
     ts = (dt_with_tz - datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
     
     return int(ts)
+
+def epoch_to_dt(epoch):
+    tz = pytz.timezone('America/New_York')
+    dt = datetime.fromtimestamp(epoch, tz)
+    return dt

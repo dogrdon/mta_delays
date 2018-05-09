@@ -35,3 +35,6 @@ class MongoConn(object):
 
 	def get_one_record(self, field=None, val=None):
 		return self.collection.find_one({field:val})
+
+	def update_one(self, record, upsert=True):
+		return self.collection.update_one(record)
