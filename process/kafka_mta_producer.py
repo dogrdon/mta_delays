@@ -20,8 +20,6 @@ producer = KafkaProducer(bootstrap_servers='localhost:9092',
 
 
 
-
-
 def clean_id(jsonrecord):
 	jsonrecord['oid'] = jsonrecord['_id']['$oid']
 	del jsonrecord['_id']

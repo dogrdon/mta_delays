@@ -21,19 +21,28 @@ consumer = KafkaConsumer(MTA_DELAYS_OUT_KAFKA_TOPIC,
                          auto_offset_reset='earliest',
                          value_deserializer=lambda m: json.loads(m.decode('utf-8')))
 
-client = pymongo.MongoClient('localhost', 27017)
-db = client['mta_delays_dev']
-collection = db['mta_delays_processed']
 
-for message in consumer:
-    msg = message.value
-    if '_id' in msg.keys():
-        del msg['_id']
-    if 'oid' in msg.keys():
-        del msg['oid']
-    # method for avoiding duplicate errors from: https://stackoverflow.com/questions/44838280/how-to-ignore-duplicate-key-errors-safely-using-insert-many
-    try:
-    	collection.insert_one(msg)
-    except pymongo.errors.DuplicateKeyError as e:	
-    	print("Dupe: {}".format(e))
-    	continue
+def consume_processed_mta_delays():
+
+    client = pymongo.MongoClient('localhost', 27017)
+    db = client['mta_delays_dev']
+    collection = db['mta_delays_processed']
+
+    for message in consumer:
+        msg = message.value
+        
+        # delete the original mongodb keys so things don't get confused for reloading back to another mongo collection
+        if '_id' in msg.keys():
+            del msg['_id']
+        if 'oid' in msg.keys():
+            del msg['oid']
+
+        # method for avoiding duplicate errors from: https://stackoverflow.com/questions/44838280/how-to-ignore-duplicate-key-errors-safely-using-insert-many
+        try:
+        	collection.insert_one(msg)
+        except pymongo.errors.DuplicateKeyError as e:	
+        	print("Dupe: {}".format(e))
+        	continue
+
+if __name__ == '__main__':
+    consume_processed_mta_delays()

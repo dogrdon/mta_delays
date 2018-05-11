@@ -4,7 +4,9 @@
 
 '''
     one time fix to create a `timestamp_unix` field for our raw collection 
-    of mta delays in mongodb
+    of mta delays in mongodb.
+
+    Should not be necessary going forward, this is once only use code
 '''
 
 import os, sys

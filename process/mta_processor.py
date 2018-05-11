@@ -26,11 +26,6 @@ spark = SparkSession(sc)
 '''
 
 
-def raw_text_processor():
-
-    pass
-
-
 def round_down_time(uts):
     '''
         Takes a unix timestamp and rounds it down to the nearest unit of time
@@ -53,6 +48,44 @@ def get_nearest_weather_obs(uts):
 
 nearestWeatherUDF = udf(get_nearest_weather_obs, StringType())
 
+def signal_problems(delay_text):
+  ''' Take the raw text from any delays contains the string signal, True, else false.
+      This of course could be way more robust, but I think for right now this should be
+      sufficient for getting a rought idea.
+  '''
+  signal_problems = 0
+  if delay_text is not None:
+    if 'signal' in delay_text.lower():
+      signal_problems = 1
+  
+  return signal_problems
+
+signalProblemsUDF = udf(signal_problems, IntegerType())
+
+def scale_probabilities(proba):
+  '''
+    Some values are probabilites, since we want to chart them better, lets multiply them by 100
+  '''
+  scaled_proba = None
+  if proba is not None:
+    scaled_proba = proba * 100
+
+  return scaled_proba
+
+
+scaledProbaUDF = udf(scale_probabilities, DoubleType())
+
+def rain_or_not(summary):
+  '''
+    Flag if it's raining or not, let's just skip drizzle for now
+  '''
+  rain = 0
+  if summary is not None:
+    if 'rain' in summary.lower():
+      rain = 1
+  return rain
+
+rainOrNotUDF = udf(rain_or_not, IntegerType())
 
 weather_df = spark.read.format("com.mongodb.spark.sql.DefaultSource").load()
 weather_df = weather_df.withColumnRenamed("time", "timestamp_unix_weather")
@@ -96,7 +129,12 @@ full_data_pruned_df = join_weather_df.withColumn('delay_text', when((join_weathe
                                      .drop(join_weather_df.raw_text)
 
 full_data_coded_df = full_data_pruned_df.withColumn('delay', when(full_data_pruned_df.status=="DELAYS", 1).otherwise(0)) \
-                                        .withColumn('service_change', when(full_data_pruned_df.status=="SERVICE CHANGE", 1).otherwise(0)) 
+                                        .withColumn('service_change', when(full_data_pruned_df.status=="SERVICE CHANGE", 1).otherwise(0)) \
+                                        .withColumn('raining', rainOrNotUDF(col('summary'))) \
+                                        .withColumn('precip_proba_scaled', scaledProbaUDF(col('precipProbability'))) \
+                                        .withColumn('precip_inten_scaled', scaledProbaUDF(col('precipIntensity'))) \
+                                        .withColumn('humidity_scaled', scaledProbaUDF(col('humidity'))) \
+                                        .withColumn('signal_problem', signalProblemsUDF(col('delay_text')))
 
 
 #qry = full_data_pruned_df.writeStream.outputMode("append").format("console").start()

@@ -23,3 +23,8 @@ venv.bak/
 metastore_db/
 spark-warehouse/
 derby.log
+
+
+# misch 
+
+._mta_delays_consume_processed.py
