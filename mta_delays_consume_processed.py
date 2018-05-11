@@ -13,7 +13,7 @@ defaults = {
     'owner': 'Drew Gordon',
     'depends_on_past': False,
     'catchup': False,
-    'start_date': datetime.now(),
+    'start_date': datetime(2018, 5, 11, 0, 41, 59),
     'email':['asgor@uw.edu'],
     'email_on_failure': True,
     'email_on_retry': False,
