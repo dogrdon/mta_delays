@@ -16,7 +16,7 @@ import time
 
 DATABASE = 'mta_delays_dev'
 COLLECTION = 'mta_delays_processed'
-
+TIMEOUT = 60
 
 esclient = Elasticsearch()
 mgclient = MongoClient()
@@ -33,6 +33,7 @@ def delete_index():
 def index_es():
 
     delete_index()
+    
     docs = []
     total = 0
     for data in col.find():
@@ -49,7 +50,7 @@ def index_es():
         # Dump x number of objects at a time
         if len(docs) >= 50:
             total += 50
-            deque(parallel_bulk(esclient, docs), maxlen=0)
+            deque(parallel_bulk(esclient, docs, request_timeout=TIMEOUT), maxlen=0)
             print('Indexed {} documents'.format(str(total)))
             docs = []
 

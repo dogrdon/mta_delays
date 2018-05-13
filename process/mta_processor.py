@@ -87,6 +87,32 @@ def rain_or_not(summary):
 
 rainOrNotUDF = udf(rain_or_not, IntegerType())
 
+
+def sick_passenger(delay_text):
+  '''
+    Flag if delay is related to a sick passenger
+  '''
+  sick = 0
+  if delay_text is not None:
+    if 'sick' in delay_text.lower():
+      sick = 1
+  return sick
+
+sickPassengerUDF = udf(sick_passenger, IntegerType())
+
+def nypd_investigation(delay_text):
+  '''
+    Flag if delay related to NYPD investigation
+  '''
+  nypd = 0
+  if delay_text is not None:
+    if 'nypd investigation' in delay_text.lower():
+      nypd = 1
+  return nypd
+
+
+nypdInvestigationUDF = udf(nypd_investigation, IntegerType())
+
 weather_df = spark.read.format("com.mongodb.spark.sql.DefaultSource").load()
 weather_df = weather_df.withColumnRenamed("time", "timestamp_unix_weather")
 weather_df = weather_df.withColumn('rounded_timestamp', roundDownTimeUDF(col('timestamp_unix_weather')))
@@ -134,7 +160,9 @@ full_data_coded_df = full_data_pruned_df.withColumn('delay', when(full_data_prun
                                         .withColumn('precip_proba_scaled', scaledProbaUDF(col('precipProbability'))) \
                                         .withColumn('precip_inten_scaled', scaledProbaUDF(col('precipIntensity'))) \
                                         .withColumn('humidity_scaled', scaledProbaUDF(col('humidity'))) \
-                                        .withColumn('signal_problem', signalProblemsUDF(col('delay_text')))
+                                        .withColumn('signal_problem', signalProblemsUDF(col('delay_text'))) \
+                                        .withColumn('nypd_related', nypdInvestigationUDF(col('delay_text'))) \
+                                        .withColumn('sick_passenger', sickPassengerUDF(col('delay_text')))
 
 
 #qry = full_data_pruned_df.writeStream.outputMode("append").format("console").start()
