@@ -106,7 +106,7 @@ def nypd_investigation(delay_text):
   '''
   nypd = 0
   if delay_text is not None:
-    if 'nypd investigation' in delay_text.lower():
+    if 'nypd' in delay_text.lower():
       nypd = 1
   return nypd
 
