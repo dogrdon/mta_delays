@@ -16,7 +16,8 @@ def format_date(dt):
     HH, MIN, SS = t[0].split(':')
     if (t[1] == 'PM') and (HH != '12'):
         HH = (int(HH) + 12)
-
+    if (t[1] == 'AM') and (HH == '12'):
+        HH = 0
     dtobj = datetime(int(YYYY), int(MM), int(DD), int(HH), int(MIN), int(SS))
 
     return dtobj
