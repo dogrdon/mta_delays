@@ -26,7 +26,7 @@ col = db[COLLECTION]
 def delete_index():
     if esclient.indices.exists(index=DATABASE):
         print("{} exists, deleting...".format(DATABASE))
-        esclient.indices.delete(index='test-index', ignore=[400, 404])
+        esclient.indices.delete(index=DATABASE, ignore=[400, 404])
         print("{} deleted".format(DATABASE))
 
 
