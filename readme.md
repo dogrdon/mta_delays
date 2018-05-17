@@ -1,6 +1,6 @@
 ### MTA Subway Delays Data Pipeline
 
-![MTA Delays Pipeline0(etc/pipeline.png)
+![MTA Delays Pipeline](etc/pipeline.png)
 
 Get the current status: http://web.mta.info/status/serviceStatus.txt
 
