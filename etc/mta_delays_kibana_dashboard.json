@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "MTA-Delays-Dashboard",
+    "_type": "dashboard",
+    "_source": {
+      "title": "MTA Delays Dashboard",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":8,\"id\":\"Temp-slash-ServiceChange-slash-Delays\",\"panelIndex\":3,\"row\":1,\"size_x\":5,\"size_y\":6,\"type\":\"visualization\"},{\"col\":1,\"id\":\"Humidity-and-Ozone\",\"panelIndex\":4,\"row\":7,\"size_x\":12,\"size_y\":8,\"type\":\"visualization\"},{\"col\":1,\"id\":\"Distribution-of-Delay-Types\",\"panelIndex\":9,\"row\":15,\"size_x\":12,\"size_y\":5,\"type\":\"visualization\"},{\"col\":1,\"id\":\"Rain-and-Signal-Problems\",\"panelIndex\":10,\"row\":20,\"size_x\":12,\"size_y\":5,\"type\":\"visualization\"},{\"col\":1,\"id\":\"Raining-questionmark-\",\"panelIndex\":11,\"row\":1,\"size_x\":7,\"size_y\":6,\"type\":\"visualization\"}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-11\":{\"vis\":{\"colors\":{\"Sum of service_change\":\"#890F02\"}}},\"P-3\":{\"vis\":{\"legendOpen\":false}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"filter\":[{\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}}}]}"
+      }
+    }
+  }
+]
