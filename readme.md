@@ -9,3 +9,6 @@ And the weather
 40 times an hour. Because we're going to look into it and see what's going on with it.
 
 
+Ans:
+
+It's not _really_ the weather.
